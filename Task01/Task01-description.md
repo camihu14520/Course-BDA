@@ -1,7 +1,7 @@
 
 # 任務一: 學習 Git & GitHub
 
-1. 自行觀看教學影片：[Git 和 GitHub 零基礎快速上手，輕鬆掌握版本控制的要訣！](https://www.youtube.com/watch?v=PNEM7CH7ZQY)
+1. 自行觀看教學影片：[Git 和 GitHub 零基礎快速上手，輕鬆掌握版本控制的要訣！](https://www.youtube.com/watch?v=FKXRiAiQFiY&t=634s)
 
 2. 將教學影片內容寫成一份教學文件
 
@@ -18,4 +18,4 @@
 ## 補充
 
 這系列影片可以作為另外的補充教材：
-[【git教學 #1】15分鐘學會git & github（附實例）](https://www.youtube.com/watch?v=ALK_rjYkaWI)
+[【git教學 #1】15分鐘學會git & github（附實例）](https://www.youtube.com/watch?v=Zd5jSDRjWfA&list=PLz-S_Wd1N3svV8XnuDM6CPaTCtQkk5SY4&index=1)
