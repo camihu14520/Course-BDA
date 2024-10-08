@@ -1,0 +1,91 @@
+import numpy as np
+import pandas as pd
+
+### 1.匯入all-canccelled-flights和cancellation-codes，並以csv輸出。
+# 讀取檔案
+df1 = pd.read_csv("all-cancelled-flights檔案路徑.csv")
+df2 = pd.read_csv("cancellation-codes檔案路徑.csv")
+# 合併兩個檔案，使用left_on，right_on將兩份csv檔欄位對上，選擇left保留左邊表格的所有資料，並合併右邊表格的對應資料。
+merged_df = pd.merge(df1, df2, left_on='CANCELLATION_CODE', right_on='Code', how='left')
+# 輸出成csv檔
+merged_df.to_csv('Merged_Files.csv', index=False)
+# 查看合併後檔案
+merged_df.head()
+
+### 2.分析四種航班取消的比例
+from collections import Counter
+# 將合併後的csv檔轉為df
+df = pd.DataFrame(merged_df)
+# 首先將字串的所有字符統計
+df['counts'] = df['CANCELLATION_CODE'].apply(lambda x: Counter(x))
+# 計算總長度並計算各字元所佔比例
+df['總長度'] = df['CANCELLATION_CODE'].apply(len)
+# 創建一個新的DataFrame來表示所有字元的總數
+counts_sum = df['counts'].sum()
+# 計算比例
+proportions = {key: value / df['總長度'].sum() for key, value in counts_sum.items()}
+proportions
+
+### 3.分析哪個航班機號取消次數最高，且佔三年數據中百分率為何?
+# 計算每個航班號取消的次數
+flight_cancellations = cancelled_flights['OP_CARRIER_FL_NUM'].value_counts()
+# 找出取消次數最多的航班號及其取消次數
+max_cancelled_flight = flight_cancellations.idxmax()  # 取消次數最多的航班號
+max_cancellations = flight_cancellations.max()  # 該航班號的取消次數
+# 計算總取消次數
+total_cancellations = flight_cancellations.sum()
+# 計算該航班號的取消百分比
+cancel_percentage = (max_cancellations / total_cancellations) * 100
+# 呈現結果
+print(f"取消最多的航班號是：{max_cancelled_flight}")
+print(f"取消次數：{max_cancellations}")
+print(f"佔三年的百分比：{cancel_percentage:.2f}%")
+
+### 4.分析從OGG出發的航班中，每一年班機取消原因的占比如何?
+# 確保FLIGHT_DATE列是日期格式
+df['FLIGHT_DATE'] = pd.to_datetime(df['FLIGHT_DATE'])
+# 過濾出出發地為OGG的航班
+ogg_flights = df[df['ORIGIN'] == 'OGG']
+# 確保FLIGHT_DATE是datetime格式
+ogg_flights['year'] = ogg_flights['FLIGHT_DATE'].dt.year
+# 計算每年每個取消原因的出現次數
+cancellation_by_year = ogg_flights.groupby(['year', 'CANCELLATION_CODE']).size().unstack(fill_value=0)
+# 計算每年每個取消原因的占比
+cancellation_percentage = cancellation_by_year.div(cancellation_by_year.sum(axis=1), axis=0) * 100
+# 結果呈現
+cancellation_percentage
+
+### 5.分析從IAD起飛架次最多的是哪家航空公司的航班?從IAD起飛的航班遭取消的最常見原因是什麼?
+# 過濾出出發地為IAD的航班
+iad_flights = df[df['ORIGIN'] == 'IAD']
+# 計算每個航空公司的航班次數
+carrier_flight_counts = iad_flights.groupby(['OP_CARRIER', 'CARRIER_NAME']).size().reset_index(name='Flight_Count')
+# 找出起飛次數最多的航空公司
+top_carrier = carrier_flight_counts.sort_values(by='Flight_Count', ascending=False).iloc[0]
+# 過濾出被取消的航班
+cancelled_iad_flights = iad_flights[iad_flights['CANCELLATION_CODE'].notnull()]
+# 計算每個取消原因的出現次數
+cancellation_reasons = cancelled_iad_flights['CANCELLATION_CODE'].value_counts()
+# 找出最常見的取消原因
+top_cancellation_reason = cancellation_reasons.idxmax()
+# 結果呈現
+print(f"從IAD起飛架次最多的航空公司是: {top_carrier['CARRIER_NAME']} ({top_carrier['OP_CARRIER']})")
+print(f"從IAD起飛航班遭取消的最常見原因是: {top_cancellation_reason}")
+
+# Bonus. 分析哪家航空公司從未因National Air System和Security原因取消航班?此航空公司曾取消多少航班?
+# 過濾取消原因為C或D的航班
+cancelled_without_CD = cancelled_flights[~cancelled_flights['CANCELLATION_CODE'].isin(['C', 'D'])]
+# 找出取消原因為C或D的航班
+cancelled_with_CD = cancelled_flights[cancelled_flights['CANCELLATION_CODE'].isin(['C', 'D'])]
+# 找出所有航空公司代號
+all_carriers = df['OP_CARRIER'].unique()
+# 找出有取消C或D原因的航空公司
+carriers_with_CD = cancelled_with_CD['OP_CARRIER'].unique()
+# 找出從未因C或D取消的航空公司
+carriers_without_CD = [carrier for carrier in all_carriers if carrier not in carriers_with_CD]
+# 過濾出這些航空公司的數據
+flights_without_CD = cancelled_without_CD[cancelled_without_CD['OP_CARRIER'].isin(carriers_without_CD)]
+# 計算取消的航班數量
+cancelled_counts = flights_without_CD.groupby('OP_CARRIER').size().reset_index(name='Cancelled_Flight_Count')
+# 結果呈現
+print(cancelled_counts)
