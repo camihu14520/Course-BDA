@@ -7,7 +7,7 @@
 3. Final results and conclusions.
 
 ## Naming
-File should be named: `task03_hank.md`
+File should be named: `task03_Peter.md`
 
 ## Submission
 Push to Github space in Task03.
